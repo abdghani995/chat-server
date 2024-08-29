@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const pool = require('./dbConnect')
 
 const createApis = app => {
+  app.get('/', async (req, res) => res.send("Working"))
+
   app.post('/api/groups', async (req, res) => {
     try {
       const { name } = req.body;
