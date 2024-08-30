@@ -5,6 +5,23 @@ const pool = require('./dbConnect')
 const createApis = app => {
   app.get('/', async (req, res) => res.send("Working"))
 
+  app.get('/api/groups', async (req, res) => {
+    try {
+      let { limit } = req.query;
+      limit = limit === undefined ? 10 : limit;
+      const grpId = uuidv4().toString();
+      const key128 = crypto.randomBytes(16);  // 128-bit key
+      const query = 'Select * FROM groups limit ($1)';
+      const values = [limit]
+      const result = await pool.query(query, values);
+
+      res.status(201).send(result.rows);
+    } catch (err) {
+      console.error('PostgreSQL error', err);
+      res.status(500).send({ message: 'Error creating group' });
+    }
+  });
+
   app.post('/api/groups', async (req, res) => {
     try {
       const { name } = req.body;
@@ -13,14 +30,14 @@ const createApis = app => {
       const query = 'INSERT INTO groups (Name, Key, groupId) VALUES ($1, $2, $3) RETURNING *';
       const values = [name, key128.toString('hex'), grpId];
       const result = await pool.query(query, values);
-  
+
       res.status(201).send(result.rows[0]);
     } catch (err) {
       console.error('PostgreSQL error', err);
       res.status(500).send({ message: 'Error creating group' });
     }
   });
-  
+
   app.get('/api/group/:groupId', async (req, res) => {
     try {
       const { groupId } = req.params;
